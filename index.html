@@ -40,7 +40,7 @@
             margin: 0 5px;
         }
         .input-row .input-group input {
-            width: 80%;
+            width: 90%;
         }
         label {
             font-weight: bold;
@@ -65,6 +65,14 @@
         button:hover {
             background-color: #218838;
         }
+        .summary {
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            background: #fff;
+            text-align: left;
+        }
     </style>
     <script>
         function updateLabels() {
@@ -76,6 +84,31 @@
                 document.getElementById("startTimeLabel").innerText = "Arrival at Rental Car Facility:";
                 document.getElementById("endTimeLabel").innerText = "Drop off at Rental Facility:";
             }
+        }
+
+        function calculatePerDiem() {
+            let projectName = document.getElementById("projectName").value;
+            let projectLocation = document.getElementById("projectLocation").value;
+            let startDate = new Date(document.getElementById("startDate").value);
+            let endDate = new Date(document.getElementById("endDate").value);
+            let totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1;
+            
+            if (isNaN(totalDays) || totalDays <= 0) {
+                alert("Please enter valid start and end dates.");
+                return;
+            }
+            
+            let breakfast = totalDays * 10;
+            let lunch = totalDays * 20;
+            let dinner = totalDays * 30;
+            let totalPerDiem = breakfast + lunch + dinner;
+            
+            document.getElementById("summaryProjectName").innerText = `Project Name: ${projectName}`;
+            document.getElementById("summaryProjectLocation").innerText = `Project Location: ${projectLocation}`;
+            document.getElementById("summaryBreakfast").innerText = `Breakfasts: ${totalDays} ($${breakfast})`;
+            document.getElementById("summaryLunch").innerText = `Lunches: ${totalDays} ($${lunch})`;
+            document.getElementById("summaryDinner").innerText = `Dinners: ${totalDays} ($${dinner})`;
+            document.getElementById("summaryTotal").innerText = `Total Per Diem: $${totalPerDiem}`;
         }
     </script>
 </head>
@@ -118,6 +151,15 @@
             </div>
         </div>
         <button onclick="calculatePerDiem()">Calculate</button>
+        <div class="summary">
+            <h3>Summary</h3>
+            <p id="summaryProjectName">Project Name:</p>
+            <p id="summaryProjectLocation">Project Location:</p>
+            <p id="summaryBreakfast">Breakfasts: 0 ($0)</p>
+            <p id="summaryLunch">Lunches: 0 ($0)</p>
+            <p id="summaryDinner">Dinners: 0 ($0)</p>
+            <p id="summaryTotal"><strong>Total Per Diem: $0</strong></p>
+        </div>
     </div>
 </body>
 </html>
