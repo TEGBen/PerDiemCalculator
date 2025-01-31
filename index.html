@@ -1,138 +1,123 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.3">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Per Diem Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: auto;
+        }
+        h2 {
+            color: #333;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .input-row .input-group {
+            flex: 1;
+            margin: 0 5px;
+        }
+        .input-row .input-group input {
+            width: 80%;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        select, input {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+    <script>
+        function updateLabels() {
+            let travelType = document.getElementById("travelType").value;
+            if (travelType === "Flight") {
+                document.getElementById("startTimeLabel").innerText = "Flight Departure Time:";
+                document.getElementById("endTimeLabel").innerText = "Return Flight Arrival Time:";
+            } else {
+                document.getElementById("startTimeLabel").innerText = "Arrival at Rental Car Facility:";
+                document.getElementById("endTimeLabel").innerText = "Drop off at Rental Facility:";
+            }
+        }
+    </script>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="en"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Per Diem Calculator&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: Arial, sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-color: #f4f4f4;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.container {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>max-width: 500px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: auto;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>h2 {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #333;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.input-group {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.input-row {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.input-row .input-group {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex: 1;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 0 5px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.input-row .input-group input {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 80%;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>label {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 5px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>select, input {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 6px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #ccc;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 5px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>button {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-color: #28a745;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 10px 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 5px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>button:hover {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-color: #218838;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>function updateLabels() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let travelType = document.getElementById("travelType").value;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (travelType === "Flight") {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById("startTimeLabel").innerText = "Flight Departure Time:";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById("endTimeLabel").innerText = "Return Flight Arrival Time:";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById("startTimeLabel").innerText = "Arrival at Rental Car Facility:";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById("endTimeLabel").innerText = "Drop off at Rental Facility:";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="container"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;h2&gt;Per Diem Calculator&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;label for="projectName"&gt;Project Name:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;input type="text" id="projectName"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;label for="projectLocation"&gt;Project Location:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;input type="text" id="projectLocation"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;label for="travelType"&gt;Travel Type:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;select id="travelType" onchange="updateLabels()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;option value="Flight"&gt;Flight&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;option value="RentalCar"&gt;Rental Car&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/select&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="input-row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;label for="startDate"&gt;Start Date:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="date" id="startDate"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;label for="endDate"&gt;End Date:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="date" id="endDate"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="input-row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;label id="startTimeLabel" for="startTime"&gt;Flight Departure Time:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="time" id="startTime"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;label id="endTimeLabel" for="endTime"&gt;Return Flight Arrival Time:&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="time" id="endTime"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="calculatePerDiem()"&gt;Calculate&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+    <div class="container">
+        <h2>Per Diem Calculator</h2>
+        <div class="input-group">
+            <label for="projectName">Project Name:</label>
+            <input type="text" id="projectName">
+        </div>
+        <div class="input-group">
+            <label for="projectLocation">Project Location:</label>
+            <input type="text" id="projectLocation">
+        </div>
+        <div class="input-group">
+            <label for="travelType">Travel Type:</label>
+            <select id="travelType" onchange="updateLabels()">
+                <option value="Flight">Flight</option>
+                <option value="RentalCar">Rental Car</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="input-group">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label id="startTimeLabel" for="startTime">Flight Departure Time:</label>
+                <input type="time" id="startTime">
+            </div>
+            <div class="input-group">
+                <label id="endTimeLabel" for="endTime">Return Flight Arrival Time:</label>
+                <input type="time" id="endTime">
+            </div>
+        </div>
+        <button onclick="calculatePerDiem()">Calculate</button>
+    </div>
 </body>
 </html>
