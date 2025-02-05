@@ -91,6 +91,8 @@
             let projectLocation = document.getElementById("projectLocation").value;
             let startDate = new Date(document.getElementById("startDate").value);
             let endDate = new Date(document.getElementById("endDate").value);
+            let startTime = document.getElementById("startTime").value;
+            let endTime = document.getElementById("endTime").value;
             let totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1;
             
             if (isNaN(totalDays) || totalDays <= 0) {
@@ -98,16 +100,39 @@
                 return;
             }
             
-            let breakfast = totalDays * 10;
-            let lunch = totalDays * 20;
-            let dinner = totalDays * 30;
-            let totalPerDiem = breakfast + lunch + dinner;
+            let breakfast = 0, lunch = 0, dinner = 0;
+            let breakfastCost = 10, lunchCost = 20, dinnerCost = 30;
+
+            function timeToMinutes(time) {
+                let [hours, minutes] = time.split(":").map(Number);
+                return hours * 60 + minutes;
+            }
+
+            if (startTime) {
+                let departureMinutes = timeToMinutes(startTime);
+                if (departureMinutes <= timeToMinutes("10:30")) breakfast++;
+                if (departureMinutes <= timeToMinutes("13:00")) lunch++;
+                if (departureMinutes <= timeToMinutes("18:00")) dinner++;
+            }
+
+            if (endTime) {
+                let returnMinutes = timeToMinutes(endTime);
+                if (returnMinutes >= timeToMinutes("10:30")) breakfast++;
+                if (returnMinutes >= timeToMinutes("13:00")) lunch++;
+                if (returnMinutes >= timeToMinutes("18:00")) dinner++;
+            }
+            
+            breakfast += totalDays - 2;
+            lunch += totalDays - 2;
+            dinner += totalDays - 2;
+
+            let totalPerDiem = (breakfast * breakfastCost) + (lunch * lunchCost) + (dinner * dinnerCost);
             
             document.getElementById("summaryProjectName").innerText = `Project Name: ${projectName}`;
             document.getElementById("summaryProjectLocation").innerText = `Project Location: ${projectLocation}`;
-            document.getElementById("summaryBreakfast").innerText = `Breakfasts: ${totalDays} ($${breakfast})`;
-            document.getElementById("summaryLunch").innerText = `Lunches: ${totalDays} ($${lunch})`;
-            document.getElementById("summaryDinner").innerText = `Dinners: ${totalDays} ($${dinner})`;
+            document.getElementById("summaryBreakfast").innerText = `Breakfasts: ${breakfast} ($${breakfast * breakfastCost})`;
+            document.getElementById("summaryLunch").innerText = `Lunches: ${lunch} ($${lunch * lunchCost})`;
+            document.getElementById("summaryDinner").innerText = `Dinners: ${dinner} ($${dinner * dinnerCost})`;
             document.getElementById("summaryTotal").innerText = `Total Per Diem: $${totalPerDiem}`;
         }
     </script>
@@ -129,16 +154,6 @@
                 <option value="Flight">Flight</option>
                 <option value="RentalCar">Rental Car</option>
             </select>
-        </div>
-        <div class="input-row">
-            <div class="input-group">
-                <label for="startDate">Start Date:</label>
-                <input type="date" id="startDate">
-            </div>
-            <div class="input-group">
-                <label for="endDate">End Date:</label>
-                <input type="date" id="endDate">
-            </div>
         </div>
         <div class="input-row">
             <div class="input-group">
