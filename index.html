@@ -91,8 +91,6 @@
             let projectLocation = document.getElementById("projectLocation").value;
             let startDate = new Date(document.getElementById("startDate").value);
             let endDate = new Date(document.getElementById("endDate").value);
-            let startTime = document.getElementById("startTime").value;
-            let endTime = document.getElementById("endTime").value;
             let totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1;
             
             if (isNaN(totalDays) || totalDays <= 0) {
@@ -100,40 +98,17 @@
                 return;
             }
             
-            let breakfast = 0, lunch = 0, dinner = 0;
-            let breakfastCost = 10, lunchCost = 20, dinnerCost = 30;
-
-            function timeToMinutes(time) {
-                let [hours, minutes] = time.split(":").map(Number);
-                return hours * 60 + minutes;
-            }
-
-            if (startTime) {
-                let departureMinutes = timeToMinutes(startTime);
-                if (departureMinutes <= timeToMinutes("10:30")) breakfast++;
-                if (departureMinutes <= timeToMinutes("13:00")) lunch++;
-                if (departureMinutes <= timeToMinutes("18:00")) dinner++;
-            }
-
-            if (endTime) {
-                let returnMinutes = timeToMinutes(endTime);
-                if (returnMinutes >= timeToMinutes("10:30")) breakfast++;
-                if (returnMinutes >= timeToMinutes("13:00")) lunch++;
-                if (returnMinutes >= timeToMinutes("18:00")) dinner++;
-            }
+            let breakfast = totalDays * 10;
+            let lunch = totalDays * 20;
+            let dinner = totalDays * 30;
+            let totalPerDiem = breakfast + lunch + dinner;
             
-            breakfast += totalDays - 2;
-            lunch += totalDays - 2;
-            dinner += totalDays - 2;
-
-            let totalPerDiem = (breakfast * breakfastCost) + (lunch * lunchCost) + (dinner * dinnerCost);
-            
-            document.getElementById("summaryProjectName").innerText = `Project Name: ${projectName}`;
-            document.getElementById("summaryProjectLocation").innerText = `Project Location: ${projectLocation}`;
-            document.getElementById("summaryBreakfast").innerText = `Breakfasts: ${breakfast} ($${breakfast * breakfastCost})`;
-            document.getElementById("summaryLunch").innerText = `Lunches: ${lunch} ($${lunch * lunchCost})`;
-            document.getElementById("summaryDinner").innerText = `Dinners: ${dinner} ($${dinner * dinnerCost})`;
-            document.getElementById("summaryTotal").innerText = `Total Per Diem: $${totalPerDiem}`;
+            document.getElementById("summaryProjectName").innerText = Project Name: ${projectName};
+            document.getElementById("summaryProjectLocation").innerText = Project Location: ${projectLocation};
+            document.getElementById("summaryBreakfast").innerText = Breakfasts: ${totalDays} ($${breakfast});
+            document.getElementById("summaryLunch").innerText = Lunches: ${totalDays} ($${lunch});
+            document.getElementById("summaryDinner").innerText = Dinners: ${totalDays} ($${dinner});
+            document.getElementById("summaryTotal").innerText = Total Per Diem: $${totalPerDiem};
         }
     </script>
 </head>
@@ -141,12 +116,49 @@
     <div class="container">
         <h2>Per Diem Calculator</h2>
         <div class="input-group">
-            <label for="startDate">Start Date:</label>
-            <input type="date" id="startDate">
+            <label for="projectName">Project Name:</label>
+            <input type="text" id="projectName">
         </div>
         <div class="input-group">
-            <label for="endDate">End Date:</label>
-            <input type="date" id="endDate">
+            <label for="projectLocation">Project Location:</label>
+            <input type="text" id="projectLocation">
+        </div>
+        <div class="input-group">
+            <label for="travelType">Travel Type:</label>
+            <select id="travelType" onchange="updateLabels()">
+                <option value="Flight">Flight</option>
+                <option value="RentalCar">Rental Car</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="input-group">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label id="startTimeLabel" for="startTime">Flight Departure Time:</label>
+                <input type="time" id="startTime">
+            </div>
+            <div class="input-group">
+                <label id="endTimeLabel" for="endTime">Return Flight Arrival Time:</label>
+                <input type="time" id="endTime">
+            </div>
+        </div>
+        <button onclick="calculatePerDiem()">Calculate</button>
+        <div class="summary">
+            <h3>Summary</h3>
+            <p id="summaryProjectName">Project Name:</p>
+            <p id="summaryProjectLocation">Project Location:</p>
+            <p id="summaryBreakfast">Breakfasts: 0 ($0)</p>
+            <p id="summaryLunch">Lunches: 0 ($0)</p>
+            <p id="summaryDinner">Dinners: 0 ($0)</p>
+            <p id="summaryTotal"><strong>Total Per Diem: $0</strong></p>
         </div>
     </div>
 </body>
