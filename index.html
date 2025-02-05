@@ -141,39 +141,12 @@
     <div class="container">
         <h2>Per Diem Calculator</h2>
         <div class="input-group">
-            <label for="projectName">Project Name:</label>
-            <input type="text" id="projectName">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate">
         </div>
         <div class="input-group">
-            <label for="projectLocation">Project Location:</label>
-            <input type="text" id="projectLocation">
-        </div>
-        <div class="input-group">
-            <label for="travelType">Travel Type:</label>
-            <select id="travelType" onchange="updateLabels()">
-                <option value="Flight">Flight</option>
-                <option value="RentalCar">Rental Car</option>
-            </select>
-        </div>
-        <div class="input-row">
-            <div class="input-group">
-                <label id="startTimeLabel" for="startTime">Flight Departure Time:</label>
-                <input type="time" id="startTime">
-            </div>
-            <div class="input-group">
-                <label id="endTimeLabel" for="endTime">Return Flight Arrival Time:</label>
-                <input type="time" id="endTime">
-            </div>
-        </div>
-        <button onclick="calculatePerDiem()">Calculate</button>
-        <div class="summary">
-            <h3>Summary</h3>
-            <p id="summaryProjectName">Project Name:</p>
-            <p id="summaryProjectLocation">Project Location:</p>
-            <p id="summaryBreakfast">Breakfasts: 0 ($0)</p>
-            <p id="summaryLunch">Lunches: 0 ($0)</p>
-            <p id="summaryDinner">Dinners: 0 ($0)</p>
-            <p id="summaryTotal"><strong>Total Per Diem: $0</strong></p>
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate">
         </div>
     </div>
 </body>
