@@ -1,265 +1,312 @@
-import React, { useMemo, useState } from "react";
-import { CalendarIcon, Calculator, Plane, Sandwich, Coffee, UtensilsCrossed, DollarSign, Info } from "lucide-react";
-
-// Meal rates (USD)
-const RATES = {
-  breakfast: 10,
-  lunch: 20,
-  dinner: 30,
-};
-
-// Helper: parse HH:MM from <input type="time"> to minutes since midnight
-function timeToMinutes(t: string): number {
-  if (!t) return NaN;
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function clampToDateOnly(d: string): Date | null {
-  if (!d) return null;
-  const dt = new Date(d + "T00:00:00");
-  return isNaN(dt.getTime()) ? null : dt;
-}
-
-function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-function formatUSD(n: number): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n);
-}
-
-// Business rules
-const CUTS = {
-  breakfastDep: 10 * 60 + 30,
-  breakfastRet: 10 * 60 + 30,
-  lunchDep: 13 * 60 + 30,
-  lunchRet: 11 * 60,
-  dinnerDep: 18 * 60,
-  dinnerRet: 16 * 60,
-};
-
-// Apply optional 2-hr airport buffer to DEPARTURE only (Air Travel)
-function applyDepartureBuffer(minutes: number, useBuffer: boolean): number {
-  return Math.max(0, minutes - (useBuffer ? 120 : 0));
-}
-
-function sameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
-function PerDiemCalculator() {
-  const [location, setLocation] = useState("");
-  const [project, setProject] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [departTime, setDepartTime] = useState("");
-  const [returnTime, setReturnTime] = useState("");
-  const [airTravel, setAirTravel] = useState(true);
-
-  const result = useMemo(() => {
-    const start = clampToDateOnly(startDate);
-    const end = clampToDateOnly(endDate);
-    const depMinsRaw = timeToMinutes(departTime);
-    const retMins = timeToMinutes(returnTime);
-
-    const errors: string[] = [];
-
-    if (!start) errors.push("Start date is required.");
-    if (!end) errors.push("End date is required.");
-    if (start && end && end < start) errors.push("End date cannot be before start date.");
-    if (!departTime) errors.push("Departure time is required.");
-    if (!returnTime) errors.push("Return time is required.");
-
-    if (errors.length > 0 || !start || !end || isNaN(depMinsRaw) || isNaN(retMins)) {
-      return { errors, days: [], counts: { breakfast: 0, lunch: 0, dinner: 0 }, totals: { breakfast: 0, lunch: 0, dinner: 0, grand: 0 } };
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Per Diem Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f7f7fb; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb;
+      --brand:#4f46e5;
     }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui, sans-serif; background:var(--bg); color:var(--ink)}
+    header{position:sticky; top:0; z-index:10; backdrop-filter:saturate(180%) blur(8px); background:rgba(255,255,255,.9); border-bottom:1px solid var(--line)}
+    header .wrap, main .wrap{max-width:1000px; margin:0 auto; padding:16px}
+    h1{font-size:18px; margin:0}
+    main{padding:24px 0}
+    .grid{display:grid; grid-template-columns:1fr 2fr; gap:24px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
 
-    const depMins = applyDepartureBuffer(depMinsRaw, airTravel);
-
-    const days: Array<{ date: Date; meals: { breakfast: boolean; lunch: boolean; dinner: boolean } }> = [];
-    const numDays = Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-
-    for (let i = 0; i < numDays; i++) {
-      const day = addDays(start, i);
-      let breakfast = false;
-      let lunch = false;
-      let dinner = false;
-
-      if (sameDay(start, end)) {
-        breakfast = depMins < CUTS.breakfastDep || retMins > CUTS.breakfastRet;
-        lunch = depMins < CUTS.lunchDep || retMins > CUTS.lunchRet;
-        dinner = depMins < CUTS.dinnerDep || retMins > CUTS.dinnerRet;
-      } else if (i === 0) {
-        breakfast = depMins < CUTS.breakfastDep;
-        lunch = depMins < CUTS.lunchDep;
-        dinner = depMins < CUTS.dinnerDep;
-      } else if (i === numDays - 1) {
-        breakfast = retMins > CUTS.breakfastRet;
-        lunch = retMins > CUTS.lunchRet;
-        dinner = retMins > CUTS.dinnerRet;
-      } else {
-        breakfast = lunch = dinner = true;
-      }
-
-      days.push({ date: day, meals: { breakfast, lunch, dinner } });
+    .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .form{display:grid; gap:12px}
+    .form .row{display:flex; gap:12px}
+    .form label{display:flex; flex-direction:column; gap:6px; font-size:13px; flex:1}
+    .form input[type="text"],
+    .form input[type="date"],
+    .form input[type="time"]{
+      padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px;
+      outline:none; background:#fff;
     }
+    .form input:focus{border-color:var(--brand); box-shadow:0 0 0 3px rgba(79,70,229,.15)}
 
-    const counts = days.reduce(
-      (acc, d) => {
-        if (d.meals.breakfast) acc.breakfast += 1;
-        if (d.meals.lunch) acc.lunch += 1;
-        if (d.meals.dinner) acc.dinner += 1;
-        return acc;
-      },
-      { breakfast: 0, lunch: 0, dinner: 0 }
-    );
+    .checkbox-line{display:flex; align-items:center; gap:8px; font-size:14px; margin-top:auto; padding-bottom:2px}
+    .note{font-size:12px; color:var(--brand); background:#eef2ff; border:1px solid #e0e7ff; padding:10px; border-radius:10px}
 
-    const totals = {
-      breakfast: counts.breakfast * RATES.breakfast,
-      lunch: counts.lunch * RATES.lunch,
-      dinner: counts.dinner * RATES.dinner,
-      grand: counts.breakfast * RATES.breakfast + counts.lunch * RATES.lunch + counts.dinner * RATES.dinner,
-    } as const;
+    .report-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:14px}
+    .muted{color:var(--muted); font-size:13px}
 
-    return { errors, days, counts, totals };
-  }, [startDate, endDate, departTime, returnTime, airTravel]);
+    .summary{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+    @media (max-width:700px){ .summary{grid-template-columns:1fr} }
+    .sum{border:1px solid var(--line); border-radius:12px; padding:12px; background:#fff}
+    .sum .top{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+    .sum .title{font-size:13px; font-weight:600}
+    .sum .count{font-size:12px; color:var(--muted)}
+    .sum .amount{font-weight:700; font-size:18px}
 
-  const canCalculate = result.errors.length === 0 && result.days.length > 0;
+    table{width:100%; border-collapse:separate; border-spacing:0; font-size:14px; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+    thead{background:#f3f4f6}
+    th, td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left}
+    tbody tr:nth-child(even){background:#fafafa}
 
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Calculator className="w-6 h-6" />
-          <h1 className="text-xl font-semibold">Per Diem Calculator</h1>
+    .totals{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width:700px){ .totals{grid-template-columns:1fr} }
+    .tot-box{background:#f9fafb; border:1px solid var(--line); border-radius:12px; padding:12px}
+    .tot-row{display:flex; justify-content:space-between; font-size:14px; margin:6px 0}
+    .grand{background:#111827; color:#fff; border-radius:12px; padding:12px; display:flex; align-items:center; justify-content:space-between; font-size:20px; font-weight:800}
+    .badge{background:#111827; color:#fff; padding:6px 10px; border-radius:999px; font-weight:700}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Per Diem Calculator</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap grid">
+      <!-- Left: Form -->
+      <section class="card">
+        <h2>Trip Details</h2>
+        <div class="form" id="form">
+
+          <!-- Location + Air Travel in one row -->
+          <div class="row">
+            <label>
+              <span>Location</span>
+              <input id="location" type="text" placeholder="San Diego UTC" />
+            </label>
+            <label class="checkbox-line" style="flex:none">
+              <input id="airTravel" type="checkbox" checked />
+              <span><strong>Air Travel?</strong></span>
+            </label>
+          </div>
+
+          <label>
+            <span>Game(s) / Project</span>
+            <input id="project" type="text" placeholder="Prison Break" />
+          </label>
+
+          <div class="row">
+            <label>
+              <span>Start Date</span>
+              <input id="startDate" type="date" />
+            </label>
+            <label>
+              <span>End Date</span>
+              <input id="endDate" type="date" />
+            </label>
+          </div>
+
+          <div class="row">
+            <label>
+              <span>Departure Time <span class="muted">(local)</span></span>
+              <input id="departTime" type="time" />
+            </label>
+            <label>
+              <span>Return Time <span class="muted">(local)</span></span>
+              <input id="returnTime" type="time" />
+            </label>
+          </div>
+
+          <div class="note">
+            For Air Travel, the time is automatically calculated to include a 2-hour check-in period.
+          </div>
+
+          <div id="errors" class="note" style="display:none; background:#fef2f2; border-color:#fee2e2; color:#991b1b;"></div>
         </div>
-      </header>
+      </section>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 grid lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow p-4 space-y-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Plane className="w-5 h-5" /> Trip Details
-            </h2>
+      <!-- Right: Report -->
+      <section class="card">
+        <div class="report-head">
+          <div>
+            <div style="font-weight:700">Report</div>
+            <div class="muted" id="reportSub">Fill out the form to see results</div>
+          </div>
+          <div id="grandBadge" class="badge" style="display:none">$0.00</div>
+        </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              <label className="block">
-                <span className="text-sm font-medium">Location</span>
-                <input
-                  className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="San Diego UTC"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </label>
+        <div id="emptyState" class="muted">Enter all required fields to calculate per diem.</div>
 
-              <label className="block">
-                <span className="text-sm font-medium">Game(s) / Project</span>
-                <input
-                  className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Prison Break"
-                  value={project}
-                  onChange={(e) => setProject(e.target.value)}
-                />
-              </label>
-
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="text-sm font-medium flex items-center gap-2"><CalendarIcon className="w-4 h-4"/>Start Date</span>
-                  <input
-                    type="date"
-                    className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-sm font-medium flex items-center gap-2"><CalendarIcon className="w-4 h-4"/>End Date</span>
-                  <input
-                    type="date"
-                    className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </label>
+        <div id="results" style="display:none">
+          <div class="summary">
+            <div class="sum">
+              <div class="top">
+                <div class="title">Breakfasts @ $10</div>
+                <div class="count" id="bCount">x0</div>
               </div>
-
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border"
-                  checked={airTravel}
-                  onChange={(e) => setAirTravel(e.target.checked)}
-                />
-                <span className="font-medium">Air Travel?</span>
-              </label>
-
-              <div className="grid grid-cols-2 gap-3 items-end">
-                <label className="block">
-                  <span className="text-sm font-medium">Departure Time <span className="text-xs text-gray-500">(local)</span></span>
-                  <input
-                    type="time"
-                    className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={departTime}
-                    onChange={(e) => setDepartTime(e.target.value)}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-sm font-medium">Return Time <span className="text-xs text-gray-500">(local)</span></span>
-                  <input
-                    type="time"
-                    className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={returnTime}
-                    onChange={(e) => setReturnTime(e.target.value)}
-                  />
-                </label>
+              <div class="amount" id="bTotal">$0.00</div>
+            </div>
+            <div class="sum">
+              <div class="top">
+                <div class="title">Lunches @ $20</div>
+                <div class="count" id="lCount">x0</div>
               </div>
-
-              <div className="rounded-xl bg-indigo-50 text-indigo-900 p-3 text-sm flex gap-2">
-                <Info className="w-4 h-4 mt-1" />
-                <p>
-                  For Air Travel, the time is automatically calculated to include a 2-hour check-in period. Full middle days receive all meals.
-                </p>
+              <div class="amount" id="lTotal">$0.00</div>
+            </div>
+            <div class="sum">
+              <div class="top">
+                <div class="title">Dinners @ $30</div>
+                <div class="count" id="dCount">x0</div>
               </div>
+              <div class="amount" id="dTotal">$0.00</div>
             </div>
           </div>
 
-          {result.errors.length > 0 && (
-            <div className="mt-4 bg-red-50 text-red-900 rounded-2xl p-3 text-sm">
-              <ul className="list-disc pl-5 space-y-1">
-                {result.errors.map((e, i) => (
-                  <li key={i}>{e}</li>
-                ))}
-              </ul>
+          <div style="margin-top:16px">
+            <div class="muted" style="font-weight:600; margin-bottom:6px">Per-day breakdown</div>
+            <div style="overflow:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Breakfast</th>
+                    <th>Lunch</th>
+                    <th>Dinner</th>
+                  </tr>
+                </thead>
+                <tbody id="dayRows"></tbody>
+              </table>
             </div>
-          )}
-        </section>
+          </div>
 
-        <section className="lg:col-span-2">/* rest of component unchanged */</section>
-      </main>
-
-      <footer className="max-w-5xl mx-auto px-4 py-8 text-center text-xs text-gray-500">
-        Built with ❤️ — Rates: Breakfast ${RATES.breakfast}, Lunch ${RATES.lunch}, Dinner ${RATES.dinner}. Adjust in code if needed.
-      </footer>
+          <div class="totals" style="margin-top:12px">
+            <div class="tot-box">
+              <div class="tot-row"><span>Breakfast total</span><strong id="bTotal2">$0.00</strong></div>
+              <div class="tot-row"><span>Lunch total</span><strong id="lTotal2">$0.00</strong></div>
+              <div class="tot-row"><span>Dinner total</span><strong id="dTotal2">$0.00</strong></div>
+            </div>
+            <div class="grand">
+              <span>Grand Total</span>
+              <span id="grandTotal">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  );
-}
+  </main>
 
-function SummaryCard({ icon, title, count, amount }: { icon: React.ReactNode; title: string; count: number; amount: number }) {
-  return (
-    <div className="rounded-2xl border p-3 bg-white shadow-sm">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2 text-sm font-medium">{icon}{title}</div>
-        <span className="text-xs text-gray-500">x{count}</span>
-      </div>
-      <div className="text-lg font-semibold">{formatUSD(amount)}</div>
-    </div>
-  );
-}
+  <footer style="text-align:center; color:var(--muted); font-size:12px; padding:24px 8px">
+    Rates: Breakfast $10 • Lunch $20 • Dinner $30
+  </footer>
 
-export default function App() {
-  return <PerDiemCalculator />;
-}
+  <script>
+    const RATES = { breakfast: 10, lunch: 20, dinner: 30 };
+    const CUTS = {
+      breakfastDep: 10*60 + 30, breakfastRet: 10*60 + 30,
+      lunchDep: 13*60 + 30, lunchRet: 11*60,
+      dinnerDep: 18*60, dinnerRet: 16*60
+    };
+    const $ = id => document.getElementById(id);
+    const fmtUSD = n => new Intl.NumberFormat(undefined, {style:'currency', currency:'USD'}).format(n);
+    function timeToMinutes(t){ if(!t) return NaN; const [h,m] = t.split(':').map(Number); return h*60+m; }
+    function clampDateOnly(v){ if(!v) return null; const d=new Date(v+"T00:00:00"); return isNaN(d)?null:d; }
+    function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+    function sameDay(a,b){ return a&&b&&a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+    function applyDepartureBuffer(minutes,useBuffer){ return Math.max(0, minutes - (useBuffer ? 120 : 0)); }
+
+    ["location","project","startDate","endDate","departTime","returnTime","airTravel"].forEach(id => $(id).addEventListener("input", calculate));
+    $("airTravel").addEventListener("change", calculate);
+
+    function calculate(){
+      const location = $("location").value.trim();
+      const project  = $("project").value.trim();
+      const start    = clampDateOnly($("startDate").value);
+      const end      = clampDateOnly($("endDate").value);
+      const depRaw   = timeToMinutes($("departTime").value);
+      const retMins  = timeToMinutes($("returnTime").value);
+      const air      = $("airTravel").checked;
+
+      const errors = [];
+      if(!start) errors.push("Start date is required.");
+      if(!end) errors.push("End date is required.");
+      if(start && end && end < start) errors.push("End date cannot be before start date.");
+      if(isNaN(depRaw)) errors.push("Departure time is required.");
+      if(isNaN(retMins)) errors.push("Return time is required.");
+
+      if(errors.length){
+        $("errors").style.display = "block";
+        $("errors").innerHTML = "<ul style='margin:0; padding-left:16px'>" + errors.map(e=>`<li>${e}</li>`).join("") + "</ul>";
+        $("emptyState").style.display = "block";
+        $("results").style.display = "none";
+        $("grandBadge").style.display = "none";
+        $("reportSub").textContent = "Fill out the form to see results";
+        return;
+      } else {
+        $("errors").style.display = "none";
+      }
+
+      const depMins = applyDepartureBuffer(depRaw, air);
+      const numDays = Math.floor((end - start)/(24*60*60*1000)) + 1;
+      const days = [];
+      for(let i=0;i<numDays;i++){
+        const day = addDays(start, i);
+        let breakfast=false, lunch=false, dinner=false;
+        if(sameDay(start,end)){
+          breakfast = depMins < CUTS.breakfastDep || retMins > CUTS.breakfastRet;
+          lunch     = depMins < CUTS.lunchDep     || retMins > CUTS.lunchRet;
+          dinner    = depMins < CUTS.dinnerDep    || retMins > CUTS.dinnerRet;
+        } else if(i===0){
+          breakfast = depMins < CUTS.breakfastDep;
+          lunch     = depMins < CUTS.lunchDep;
+          dinner    = depMins < CUTS.dinnerDep;
+        } else if(i===numDays-1){
+          breakfast = retMins > CUTS.breakfastRet;
+          lunch     = retMins > CUTS.lunchRet;
+          dinner    = retMins > CUTS.dinnerRet;
+        } else {
+          breakfast = lunch = dinner = true;
+        }
+        days.push({date: day, meals:{breakfast, lunch, dinner}});
+      }
+
+      const counts = days.reduce((a,d)=>{
+        if(d.meals.breakfast) a.breakfast++;
+        if(d.meals.lunch)     a.lunch++;
+        if(d.meals.dinner)    a.dinner++;
+        return a;
+      }, {breakfast:0,lunch:0,dinner:0});
+
+      const totals = {
+        breakfast: counts.breakfast * RATES.breakfast,
+        lunch:     counts.lunch     * RATES.lunch,
+        dinner:    counts.dinner    * RATES.dinner
+      };
+      const grand = totals.breakfast + totals.lunch + totals.dinner;
+
+      const travelText = (start && end) ? `Travel: ${start.toISOString().slice(0,10)} → ${end.toISOString().slice(0,10)}` : "";
+      const parts = [];
+      if(location) parts.push(location);
+      if(project) parts.push(project);
+      if(travelText) parts.push(travelText);
+      $("reportSub").textContent = parts.length ? parts.join(" • ") : "Fill out the form to see results";
+
+      $("bCount").textContent = `x${counts.breakfast}`;
+      $("lCount").textContent = `x${counts.lunch}`;
+      $("dCount").textContent = `x${counts.dinner}`;
+      $("bTotal").textContent = fmtUSD(totals.breakfast);
+      $("lTotal").textContent = fmtUSD(totals.lunch);
+      $("dTotal").textContent = fmtUSD(totals.dinner);
+
+      $("dayRows").innerHTML = days.map(d=>{
+        const date = d.date.toISOString().slice(0,10);
+        const c = ok => ok ? "✅" : "—";
+        return `<tr><td>${date}</td><td>${c(d.meals.breakfast)}</td><td>${c(d.meals.lunch)}</td><td>${c(d.meals.dinner)}</td></tr>`;
+      }).join("");
+
+      $("bTotal2").textContent = fmtUSD(totals.breakfast);
+      $("lTotal2").textContent = fmtUSD(totals.lunch);
+      $("dTotal2").textContent = fmtUSD(totals.dinner);
+      $("grandTotal").textContent = fmtUSD(grand);
+      $("grandBadge").textContent = fmtUSD(grand);
+
+      $("emptyState").style.display = "none";
+      $("results").style.display = "block";
+      $("grandBadge").style.display = "inline-block";
+    }
+    calculate();
+  </script>
+</body>
+</html>
